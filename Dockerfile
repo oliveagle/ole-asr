@@ -3,7 +3,8 @@ FROM pytorch/pytorch:2.3.1-cuda12.1-cudnn8-devel
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    DEBIAN_FRONTEND=noninteractive
+    DEBIAN_FRONTEND=noninteractive \
+    PYTHONPATH=/app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -16,10 +17,7 @@ RUN apt-get update && apt-get install -y \
 # Set working directory
 WORKDIR /app
 
-# Copy requirements first to leverage Docker cache
-COPY pyproject.toml .
-
-# Install Python dependencies
+# Install Python dependencies (all dependencies already listed in requirements.txt)
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir "modelscope>=1.9.0" && \
     pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 && \
@@ -33,10 +31,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir "librosa>=0.10.0"
 
 # Copy source code
-COPY . .
-
-# Install the package in development mode without dependencies (already installed above)
-RUN pip install --no-deps -e .
+COPY . /app/
 
 # Download the model in advance to avoid download during runtime (as root)
 RUN mkdir -p /tmp/asr_models && \
