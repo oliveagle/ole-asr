@@ -35,8 +35,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy source code
 COPY . .
 
-# Install the package in development mode
-RUN pip install -e .
+# Install the package in development mode without dependencies (already installed above)
+RUN pip install --no-deps -e .
 
 # Download the model in advance to avoid download during runtime (as root)
 RUN mkdir -p /tmp/asr_models && \
