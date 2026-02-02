@@ -38,16 +38,17 @@ COPY . .
 # Install the package in development mode
 RUN pip install -e .
 
+# Download the model in advance to avoid download during runtime (as root)
+RUN mkdir -p /tmp/asr_models && \
+    python -c "from modelscope.hub.snapshot_download import snapshot_download; snapshot_download('damo/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch', cache_dir='/tmp/asr_models')"
+
 # Expose port
 EXPOSE 8000
 
 # Create non-root user for security
 RUN groupadd -r asruser && useradd -r -g asruser asruser && \
-    chown -R asruser:asruser /app
+    chown -R asruser:asruser /app /tmp/asr_models
 USER asruser
-
-# Download the model in advance to avoid download during runtime
-RUN python -c "from modelscope.hub.snapshot_download import snapshot_download; snapshot_download('damo/speech_paraformer-large_asr_nat-zh-cn-16k-common-vocab8404-pytorch', cache_dir='/tmp/asr_models')"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
